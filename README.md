@@ -26,3 +26,6 @@ with:
   detect-label: 'stage-ready'
   repo-token: '${{ secrets.GITHUB_TOKEN }}'
 ```
+
+---
+This is the dummy change
