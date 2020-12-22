@@ -14,8 +14,8 @@ jobs:
         id: check-comment
         with:
           trigger: '/stage-deploy'
-          reaction: robot
-          prefix-only: 'true'
+          reaction: rocket
+          prefix_only: 'true'
         env:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
       - name: Checkout
