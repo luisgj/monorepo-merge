@@ -7,18 +7,23 @@ import { getInput, setFailed } from '@actions/core';
  */
 export const groupLabeledPullRequests = async function () {
     try {
+        //get input from Github Job declaration
         const token = getInput('repo-token');
         const label = getInput('target-label');
+        const excludeCurrent = getInput('exclude-current');
+        //Create Octokit client and search for Pull Requests
         const q = `is:pull-request label:${label} repo:${context.repo.owner}/${context.repo.repo} state:open`;
-        console.log(JSON.stringify(context.repo))
-        console.log(q);
         const octokit = getOctokit(token);
-        const result = await octokit.search.issuesAndPullRequests({
+        const { data } = await octokit.search.issuesAndPullRequests({
             q,
             sort: 'created',
             order: 'desc',
         });
-        console.log(result);
+        // We have detected to exclude the current branch, so we will build the default.
+        if (excludeCurrent === "true" && data.total_count <= 0) {
+            return "default"
+        }
+        console.log(JSON.stringify(data.items));
         return 'this are the branches'
     } catch (e) {
         setFailed(e.message);
