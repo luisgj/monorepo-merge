@@ -2,7 +2,7 @@ name: Bitso Readiness Watcher
 on:
   pull_request:
     branches:
-      - master
+      - main
     types:
       - labeled
       - unlabeled
