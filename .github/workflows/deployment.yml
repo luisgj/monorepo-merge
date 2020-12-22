@@ -1,6 +1,7 @@
 name: Bitso Pull Request Deployer
-on: issue_comment
-  types: [created]
+on:
+  issue_comment:
+    types: [created]
 jobs:
   pr_commented:
     # This job only runs for pull request comments
