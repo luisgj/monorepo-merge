@@ -1,0 +1,26 @@
+name: Bitso Pull Request Deployer
+on: issue_comment
+  types: [created]
+jobs:
+  pr_commented:
+    # This job only runs for pull request comments
+    name: Deploy on comment
+    if: ${{ github.event.issue.pull_request }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for comment
+      - uses: khan/pull-request-comment-trigger@master
+        id: check-comment
+        with:
+          trigger: '/stage-deploy'
+          reaction: robot
+          prefix-only: 'true'
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Group Open PRs and Merge    
+      - uses: ./
+        if: steps.check-comment.outputs.triggered == 'true'
+        id: group-and-merge
+        with:
+          repo-token: '${{ secrets.GITHUB_TOKEN }}'
+          target-label: stage-ready

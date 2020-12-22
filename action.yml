@@ -7,12 +7,11 @@ inputs:
     default: 'stage-ready'
   exclude-current:
     description: 'Whether or not to exclude the current PR target branch'
-    default: false
+    default: 'false'
   repo-token:
     description: 'Github token secret'
     required: true
     default: "SECRETTOKEN"
-
 outputs:
   branches:
     description: 'Grouped target branches (comma separated)'

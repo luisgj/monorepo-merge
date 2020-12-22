@@ -7,35 +7,19 @@ module.exports =
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(134);
-/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_actions_github__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(127);
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_actions_core__WEBPACK_IMPORTED_MODULE_1__);
-
+/* harmony import */ var _src_lib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(582);
 
 
 /**
- * groupLabeledPullRequests
+ * main
  * @description Fetches all PRs from repo with target label and merge each one to a temp branch.
  */
-async function groupLabeledPullRequests() {
-    try {
-        const token = (0,_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput)('repo-token');
-        const label = (0,_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput)('target-label');
-        const q = `is:pr+label:${label}+repo:${_actions_github__WEBPACK_IMPORTED_MODULE_0__.context.repo}+state:open`;
-        const octokit = (0,_actions_github__WEBPACK_IMPORTED_MODULE_0__.getOctokit)(token);
-        const result = await octokit.search.issuesAndPullRequests({
-            q,
-            sort: 'created',
-            order: 'desc',
-        });
-        console.log(result);
-    } catch (e) {
-        (0,_actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed)(e.message);
-    }
+function main() {
+    const branches = (0,_src_lib__WEBPACK_IMPORTED_MODULE_0__.groupLabeledPullRequests)();
+    (0,_src_lib__WEBPACK_IMPORTED_MODULE_0__.mergeBranches)(branches);
 }
+main();
 
-groupLabeledPullRequests();
 
 /***/ }),
 
@@ -5806,6 +5790,53 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 582:
+/***/ ((module, __unused_webpack___webpack_exports__, __webpack_require__) => {
+
+"use strict";
+/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(134);
+/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_actions_github__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(127);
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_actions_core__WEBPACK_IMPORTED_MODULE_1__);
+/* module decorator */ module = __webpack_require__.hmd(module);
+
+
+
+module.exports = {
+    /**
+     * groupLabeledPullRequests
+     * @description Fetches all PRs from repo with target label and merge each one to a temp branch.
+     */
+    groupLabeledPullRequests: async function () {
+        try {
+            const token = (0,_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput)('repo-token');
+            const label = (0,_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput)('target-label');
+            const q = `is:pr+label:${label}+repo:${_actions_github__WEBPACK_IMPORTED_MODULE_0__.context.repo}+state:open`;
+            console.log(q);
+            const octokit = (0,_actions_github__WEBPACK_IMPORTED_MODULE_0__.getOctokit)(token);
+            const result = await octokit.search.issuesAndPullRequests({
+                q,
+                sort: 'created',
+                order: 'desc',
+            });
+            console.log(result);
+            return 'this are the branches'
+        } catch (e) {
+            (0,_actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed)(e.message);
+        }
+    },
+    /**
+     * mergeBranches
+     * @description Merge the branches into a temp branch.
+     */
+    mergeBranches: async function (branches) {
+        console.log(branches);
+    },
+}
+
+
+/***/ }),
+
 /***/ 431:
 /***/ ((module) => {
 
@@ -5931,8 +5962,8 @@ module.exports = require("zlib");;
 /******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			// no module.id needed
-/******/ 			// no module.loaded needed
+/******/ 			id: moduleId,
+/******/ 			loaded: false,
 /******/ 			exports: {}
 /******/ 		};
 /******/ 	
@@ -5944,6 +5975,9 @@ module.exports = require("zlib");;
 /******/ 		} finally {
 /******/ 			if(threw) delete __webpack_module_cache__[moduleId];
 /******/ 		}
+/******/ 	
+/******/ 		// Flag the module as loaded
+/******/ 		module.loaded = true;
 /******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
@@ -5971,6 +6005,21 @@ module.exports = require("zlib");;
 /******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
 /******/ 				}
 /******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/harmony module decorator */
+/******/ 	(() => {
+/******/ 		__webpack_require__.hmd = (module) => {
+/******/ 			module = Object.create(module);
+/******/ 			if (!module.children) module.children = [];
+/******/ 			Object.defineProperty(module, 'exports', {
+/******/ 				enumerable: true,
+/******/ 				set: () => {
+/******/ 					throw new Error('ES Modules may not assign module.exports or exports.*, Use ESM export syntax, instead: ' + module.id);
+/******/ 				}
+/******/ 			});
+/******/ 			return module;
 /******/ 		};
 /******/ 	})();
 /******/ 	

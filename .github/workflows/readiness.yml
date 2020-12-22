@@ -1,0 +1,30 @@
+name: Bitso Readiness Watcher
+on:
+  pull_request:
+    branches:
+      - master
+    types:
+      - labeled
+      - unlabeled
+      - opened
+      - edited
+      - reopened
+      - synchronize 
+      - ready_for_review
+jobs:
+  stageReadiness:
+    runs-on: ubuntu-latest
+    name: Check for Stage Readiness
+    steps:
+      - name: fail if no tag is found 
+        run: |
+          echo "${{ github.event.pull_request.labels }}"
+          exit 0
+  signOff:
+    runs-on: ubuntu-latest
+    name: Check for Sign-off
+    steps:
+      - name: fail check
+        run: |
+          echo "${{ github.event.pull_request.labels }}"
+          exit 0
