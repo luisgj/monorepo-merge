@@ -11,8 +11,9 @@ export const groupLabeledPullRequests = async function () {
         const token = getInput('repo-token');
         const label = getInput('target-label');
         const excludeCurrent = getInput('exclude-current');
-        //Create Octokit client and search for Pull Requests
+        //Create search query
         const q = `is:pull-request label:${label} repo:${context.repo.owner}/${context.repo.repo} state:open`;
+        //Call github API through the octokit client
         const octokit = getOctokit(token);
         const { data } = await octokit.search.issuesAndPullRequests({
             q,
@@ -20,10 +21,13 @@ export const groupLabeledPullRequests = async function () {
             order: 'desc',
         });
         // We have detected to exclude the current branch, so we will build the default.
-        if (excludeCurrent === "true" && data.total_count <= 0) {
+        if(excludeCurrent === "true" && data.total_count <= 0) {
             return "default"
         }
-        console.log(JSON.stringify(data.items));
+        // We have decided to exclude the current branch from the group
+        if(excludeCurrent === "true") {
+            console.log(JSON.stringify(context))
+        }
         return 'this are the branches'
     } catch (e) {
         setFailed(e.message);
