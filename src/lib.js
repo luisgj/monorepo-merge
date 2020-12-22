@@ -9,8 +9,8 @@ export const groupLabeledPullRequests = async function () {
     try {
         const token = getInput('repo-token');
         const label = getInput('target-label');
-        const q = `is:pr+label:${label}+repo:${context.repo}+state:open`;
-        console.log(JSON.stringify(context.repo));
+        const q = `is:pull-request label:${label} repo:${context.repo.owner}/${context.repo.repo} state:open`;
+        console.log(JSON.stringify(context.repo))
         console.log(q);
         const octokit = getOctokit(token);
         const result = await octokit.search.issuesAndPullRequests({
