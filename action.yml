@@ -1,0 +1,21 @@
+name: 'Group Pull Requests'
+description: 'Groups open Pull requests with a specific label'
+inputs:
+  target-label:
+    description: 'Target label to fetch for PRs'
+    required: true
+    default: 'stage-ready'
+  exclude-current:
+    description: 'Whether or not to exclude the current PR target branch'
+    default: false
+  repo-token:
+    description: 'Github token secret'
+    required: true
+    default: "SECRETTOKEN"
+
+outputs:
+  branches:
+    description: 'Grouped target branches (comma separated)'
+runs:
+  using: 'node12'
+  main: 'dist/index.js'

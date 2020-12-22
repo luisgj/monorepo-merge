@@ -4,7 +4,7 @@ A Javascript Github Action that fetches open pull requests with a specific label
 
 ## Inputs
 
-### `detect-label`
+### `target-label`
 
 **Required** The label that all Pull Requests must contain to be grouped.
 

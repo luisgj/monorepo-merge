@@ -1,0 +1,24 @@
+{
+  "name": "group-pull-requests",
+  "version": "1.0.0",
+  "description": "A Javascript Github Action that fetches open pull requests with a specific label and returns the grouped source branches.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luisgj/group-pull-requests.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/luisgj/group-pull-requests/issues"
+  },
+  "homepage": "https://github.com/luisgj/group-pull-requests#readme",
+  "dependencies": {
+    "@actions/core": "^1.2.6",
+    "@actions/github": "^4.0.0"
+  }
+}
