@@ -16,6 +16,8 @@ jobs:
           trigger: '/stage-deploy'
           reaction: robot
           prefix-only: 'true'
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
       - name: Checkout
         uses: actions/checkout@v2
       - name: Group Open PRs and Merge    
