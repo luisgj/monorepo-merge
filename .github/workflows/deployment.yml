@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check for comment
-      - uses: khan/pull-request-comment-trigger@master
+        uses: khan/pull-request-comment-trigger@master
         id: check-comment
         with:
           trigger: '/stage-deploy'
@@ -19,7 +19,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Group Open PRs and Merge    
-      - uses: ./
+        uses: ./
         if: steps.check-comment.outputs.triggered == 'true'
         id: group-and-merge
         with:
