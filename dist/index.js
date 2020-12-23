@@ -24,6 +24,7 @@ var core = __webpack_require__(127);
 const groupLabeledPullRequests = async function () {
     try {
         //get input from Github Job declaration
+        var branches = [];
         const token = (0,core.getInput)('repo-token');
         const label = (0,core.getInput)('target-label');
         const excludeCurrent = (0,core.getInput)('exclude-current');
@@ -40,23 +41,28 @@ const groupLabeledPullRequests = async function () {
         if(excludeCurrent === "true" && data.total_count <= 0) {
             return "default";
         }
-        // We exclude the current branch. Group all the other PRs.
-        if(excludeCurrent === "true" && data.total_count > 0) {
-            return "rollback";
+        //Fetch the current pull request
+        const splitUrl = github.context.payload.comment.issue_url.split('/');
+        const currentIssueNumber = parseInt(splitUrl[splitUrl.length - 1], 10)
+        const currentPull = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+            pull_number: issueNumber
+        });
+        // Nothing to iterate. Just add the current head branch to merge
+        if(excludeCurrent !== "true" && data.total_count <= 0) {
+            return [currentPull.data.head.ref];
         }
-        //We need to fetch the head branch for the current issue's PR.
-        if(excludeCurrent !== "true") {
-            const splitUrl = github.context.payload.comment.issue_url.split('/');
-            const issueNumber = parseInt(splitUrl[splitUrl.length - 1], 10)
-            console.log(issueNumber);
-            const currentPull = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
-                owner: github.context.repo.owner,
-                repo: github.context.repo.repo,
-                pull_number: issueNumber
-            })
-            console.log(JSON.stringify(currentPull));
+
+        if(data.total_count > 0) {
+            const branches = data.items.reduce(function(result, element) {
+                console.log(element);
+                result.push(element);
+                return result;
+            }, []);
         }
-        return 'this are the branches'
+        
+        return branches;
     } catch (e) {
         (0,core.setFailed)(e.message);
     }
@@ -75,8 +81,8 @@ const mergeBranches = async function (branches) {
  * main
  * @description Fetches all PRs from repo with target label and merge each one to a temp branch.
  */
-function main() {
-    const branches = groupLabeledPullRequests();
+async function main() {
+    const branches = await groupLabeledPullRequests();
     mergeBranches(branches);
 }
 main();
