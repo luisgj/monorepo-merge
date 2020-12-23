@@ -31,7 +31,7 @@ export const groupLabeledPullRequests = async function () {
         const currentPull = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
             owner: context.repo.owner,
             repo: context.repo.repo,
-            pull_number: issueNumber
+            pull_number: currentIssueNumber
         });
         // Nothing to iterate. Just add the current head branch to merge
         if(excludeCurrent !== "true" && data.total_count <= 0) {
