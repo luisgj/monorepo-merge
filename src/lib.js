@@ -22,11 +22,17 @@ export const groupLabeledPullRequests = async function () {
         });
         // We have detected to exclude the current branch, so we will build the default.
         if(excludeCurrent === "true" && data.total_count <= 0) {
-            return "default"
+            return "default";
         }
-        // We have decided to exclude the current branch from the group
-        if(excludeCurrent === "true") {
-            console.log(JSON.stringify(context))
+        // We exclude the current branch. Group all the other PRs.
+        if(excludeCurrent === "true" && data.total_count > 0) {
+            return "rollback";
+        }
+        //We need to fetch the fead branch for the current issue's PR.
+        if(excludeCurrent !== "true") {
+            const splitUrl = context.payload.comment.issue_url.split('/');
+            const issueNumber = splitUrl[splitUrl.length - 1]
+            console.log(issueNumber);
         }
         return 'this are the branches'
     } catch (e) {
