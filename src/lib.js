@@ -8,6 +8,7 @@ import { getInput, setFailed } from '@actions/core';
 export const groupLabeledPullRequests = async function () {
     try {
         //get input from Github Job declaration
+        var branches = [];
         const token = getInput('repo-token');
         const label = getInput('target-label');
         const excludeCurrent = getInput('exclude-current');
@@ -24,23 +25,28 @@ export const groupLabeledPullRequests = async function () {
         if(excludeCurrent === "true" && data.total_count <= 0) {
             return "default";
         }
-        // We exclude the current branch. Group all the other PRs.
-        if(excludeCurrent === "true" && data.total_count > 0) {
-            return "rollback";
+        //Fetch the current pull request
+        const splitUrl = context.payload.comment.issue_url.split('/');
+        const currentIssueNumber = parseInt(splitUrl[splitUrl.length - 1], 10)
+        const currentPull = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: issueNumber
+        });
+        // Nothing to iterate. Just add the current head branch to merge
+        if(excludeCurrent !== "true" && data.total_count <= 0) {
+            return [currentPull.data.head.ref];
         }
-        //We need to fetch the head branch for the current issue's PR.
-        if(excludeCurrent !== "true") {
-            const splitUrl = context.payload.comment.issue_url.split('/');
-            const issueNumber = parseInt(splitUrl[splitUrl.length - 1], 10)
-            console.log(issueNumber);
-            const currentPull = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: issueNumber
-            })
-            console.log(JSON.stringify(currentPull));
+
+        if(data.total_count > 0) {
+            const branches = data.items.reduce(function(result, element) {
+                console.log(element);
+                result.push(element);
+                return result;
+            }, []);
         }
-        return 'this are the branches'
+        
+        return branches;
     } catch (e) {
         setFailed(e.message);
     }
