@@ -28,11 +28,15 @@ export const groupLabeledPullRequests = async function () {
         if(excludeCurrent === "true" && data.total_count > 0) {
             return "rollback";
         }
-        //We need to fetch the fead branch for the current issue's PR.
+        //We need to fetch the head branch for the current issue's PR.
         if(excludeCurrent !== "true") {
             const splitUrl = context.payload.comment.issue_url.split('/');
             const issueNumber = splitUrl[splitUrl.length - 1]
-            console.log(issueNumber);
+            const currentPull = await octokit.pulls.get({
+                ...context.repo,
+                issueNumber,
+            });
+            console.log(JSON.stringify(currentPull.data));
         }
         return 'this are the branches'
     } catch (e) {
