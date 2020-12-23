@@ -33,11 +33,12 @@ export const groupLabeledPullRequests = async function () {
             const splitUrl = context.payload.comment.issue_url.split('/');
             const issueNumber = parseInt(splitUrl[splitUrl.length - 1], 10)
             console.log(issueNumber);
-            const currentPull = await octokit.pulls.get({
-                ...context.repo,
-                issueNumber,
-            });
-            console.log(JSON.stringify(currentPull.data));
+            const currentPull = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
+                owner: context.repo.owner,
+                repo: context.repo.owner,
+                pull_number: issueNumber
+            })
+            console.log(JSON.stringify(currentPull));
         }
         return 'this are the branches'
     } catch (e) {
