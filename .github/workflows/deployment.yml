@@ -27,4 +27,3 @@ jobs:
         with:
           repo-token: '${{ secrets.GITHUB_TOKEN }}'
           target-label: stage-ready
-          exclude-current: 'true'
