@@ -37,7 +37,7 @@ const groupLabeledPullRequests = async function () {
             sort: 'created',
             order: 'desc',
         });
-        // We have detected to exclude the current branch, so we will build the default.
+        //Exclude the current branch, so we will build the default.
         if(excludeCurrent === "true" && data.total_count <= 0) {
             return "default";
         }
@@ -50,18 +50,25 @@ const groupLabeledPullRequests = async function () {
             pull_number: currentIssueNumber
         });
         // Nothing to iterate. Just add the current head branch to merge
-        if(excludeCurrent !== "true" && data.total_count <= 0) {
+        if(excludeCurrent !== 'true' && data.total_count <= 0) {
             return [currentPull.data.head.ref];
         }
-
+        //iterate over selected PRs
         if(data.total_count > 0) {
-            const branches = data.items.reduce(function(result, element) {
-                console.log(element);
-                result.push(element);
-                return result;
+            branches = data.items.reduce(async function(accumulator, element) {
+                //only add included pull requests
+                if(!excludeCurrent !== 'true' || !element.number !== currentIssueNumber) {
+                    const accPull = await octokit.request(`GET /repos/{owner}/{repo}/pulls/{pull_number}`, {
+                        owner: github.context.repo.owner,
+                        repo: github.context.repo.repo,
+                        pull_number: element.number
+                    });
+                    console.log(JSON.stringify(accPull.data));
+                    accumulator.push(JSON.stringify(accPull.data));
+                    return accumulator;
+                }
             }, []);
         }
-        
         return branches;
     } catch (e) {
         (0,core.setFailed)(e.message);
