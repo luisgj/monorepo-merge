@@ -51,7 +51,7 @@ const groupLabeledPullRequests = async function () {
             console.log(issueNumber);
             const currentPull = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
                 owner: github.context.repo.owner,
-                repo: github.context.repo.owner,
+                repo: github.context.repo.repo,
                 pull_number: issueNumber
             })
             console.log(JSON.stringify(currentPull));
