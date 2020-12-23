@@ -31,7 +31,8 @@ export const groupLabeledPullRequests = async function () {
         //We need to fetch the head branch for the current issue's PR.
         if(excludeCurrent !== "true") {
             const splitUrl = context.payload.comment.issue_url.split('/');
-            const issueNumber = splitUrl[splitUrl.length - 1]
+            const issueNumber = parseInt(splitUrl[splitUrl.length - 1], 10)
+            console.log(issueNumber);
             const currentPull = await octokit.pulls.get({
                 ...context.repo,
                 issueNumber,
