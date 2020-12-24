@@ -42,7 +42,7 @@ export const groupLabeledPullRequests = async function () {
             if(excludeCurrent !== 'true') {
                 pulls.push(currentPull.data)
             }
-            pulls.concat(data.items.reduce(async function(accumulator, element) {
+            const reduced = data.items.reduce(async function(accumulator, element) {
                 if (element.number !== currentIssueNumber) {
                     const accPull = await octokit.request(`GET /repos/{owner}/{repo}/pulls/{pull_number}`, {
                         owner: context.repo.owner,
@@ -54,7 +54,12 @@ export const groupLabeledPullRequests = async function () {
                     accumulator.push(accPull);
                 }
                 return accumulator;
-            }, []));
+            }, []);
+            console.log("Reduced Array:");
+            console.log(JSON.stringify(reduced));
+            pulls.concat(reduced);
+            console.log("Pulls Array:");
+            console.log(JSON.stringify(pulls));
         }
         return pulls;
     } catch (e) {
