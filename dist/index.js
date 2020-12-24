@@ -56,24 +56,21 @@ const groupLabeledPullRequests = async function () {
         //iterate over selected PRs
         if(data.total_count > 0) {
             if(excludeCurrent !== 'true') {
+                console.log('Pushing current PR to array');
                 pulls.push(currentPull.data)
             }
-            const reduced = data.items.reduce(async function(accumulator, element) {
-                if (element.number !== currentIssueNumber) {
+            for (const item of data.items) {
+                if (item.number !== currentIssueNumber) {
                     const accPull = await octokit.request(`GET /repos/{owner}/{repo}/pulls/{pull_number}`, {
                         owner: github.context.repo.owner,
                         repo: github.context.repo.repo,
-                        pull_number: element.number
+                        pull_number: item.number
                     });
                     console.log('Pushing External PR to array');
                     console.log(JSON.stringify(accPull));
-                    accumulator.push(accPull);
+                    pulls.push(accPull.data);
                 }
-                return accumulator;
-            }, []);
-            console.log("Reduced Array:");
-            console.log(JSON.stringify(reduced));
-            pulls.concat(reduced);
+            }
             console.log("Pulls Array:");
             console.log(JSON.stringify(pulls));
         }
