@@ -49,6 +49,8 @@ export const groupLabeledPullRequests = async function () {
                         repo: context.repo.repo,
                         pull_number: element.number
                     });
+                    console.log('Pushing External PR to array');
+                    console.log(JSON.stringify(accPull));
                     accumulator.push(accPull);
                 }
                 return accumulator;
