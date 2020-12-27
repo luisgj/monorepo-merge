@@ -82,7 +82,15 @@ const groupLabeledPullRequests = async function () {
  * @arg pulls Array of pullr request objects.
  */
 const mergeBranches = async function (pulls) {
+    //get latest main branch sha.
+    const mainBranchName = (0,core.getInput)('main-branch');
+    const { data } = await octokit.request('GET /repos/{owner}/{repo}/branches/{branch}', {
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        branch: mainBranchName
+    });
     console.log(JSON.stringify(pulls));
+    console.log(JSON.stringify(data.commmit.sha));
 };
 // CONCATENATED MODULE: ./index.js
 
