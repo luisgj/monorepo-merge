@@ -70,11 +70,11 @@ export const mergeBranches = async function (pulls) {
     const token = getInput('repo-token');
     const octokit = getOctokit(token);
     //get latest main branch sha.
-    const { data } = await octokit.request('GET /repos/{owner}/{repo}/branches/{branch}', {
+    const data = await octokit.request('GET /repos/{owner}/{repo}/branches/{branch}', {
         owner: context.repo.owner,
         repo: context.repo.repo,
         branch: mainBranchName
     });
     console.log(JSON.stringify(pulls));
-    console.log(JSON.stringify(data.commmit.sha));
+    console.log(JSON.stringify(data));
 };
