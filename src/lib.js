@@ -66,5 +66,13 @@ export const groupLabeledPullRequests = async function () {
  * @arg pulls Array of pullr request objects.
  */
 export const mergeBranches = async function (pulls) {
+    //get latest main branch sha.
+    const mainBranchName = getInput('main-branch');
+    const { data } = await octokit.request('GET /repos/{owner}/{repo}/branches/{branch}', {
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        branch: mainBranchName
+    });
     console.log(JSON.stringify(pulls));
+    console.log(JSON.stringify(data.commmit.sha));
 };

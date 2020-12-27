@@ -12,6 +12,14 @@ inputs:
     description: 'Github token secret'
     required: true
     default: "SECRETTOKEN"
+  main-branch:
+    description: 'The main branch of the repo'
+    default: 'master'
+    required: true
+  integration-branch:
+    description: 'The branch to merge the grouped branches'
+    default: 'staging'
+    required: true
 outputs:
   branches:
     description: 'Grouped target branches (comma separated)'
