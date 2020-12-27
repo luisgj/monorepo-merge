@@ -28,20 +28,20 @@ export const groupLabeledPullRequests = async function () {
         //Fetch the current pull request
         const splitUrl = context.payload.comment.issue_url.split('/');
         const currentIssueNumber = parseInt(splitUrl[splitUrl.length - 1], 10)
-        const currentPull = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
+        const { data: currentPull } = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
             owner: context.repo.owner,
             repo: context.repo.repo,
             pull_number: currentIssueNumber
         });
         // Nothing to iterate. Just add the current pull data to merge
         if(excludeCurrent !== 'true' && data.total_count <= 0) {
-            return [currentPull.data];
+            return [currentPull];
         }
         //iterate over selected PRs
         if(data.total_count > 0) {
             if(excludeCurrent !== 'true') {
                 console.log('Pushing current PR to array');
-                pulls.push(currentPull.data)
+                pulls.push(currentPull)
             }
             for (const item of data.items) {
                 if (item.number !== currentIssueNumber) {
@@ -76,12 +76,24 @@ export const mergeBranches = async function (pulls) {
         branch: mainBranchName
     });
     //create temp branch from main branch.
+    const tmpBranchName = `integration-${context.repo.repo}-${Date.now()}`;
     await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
         owner: context.repo.owner,
         repo: context.repo.repo,
-        ref: `refs/heads/integration-${context.repo.repo}-${Date.now()}`,
+        ref: `refs/heads/integration-${tmpBranchName}`,
         sha: sha
     });
+    //merge group branches to tmp branch
+    for (const pull of pulls) {
+        const { head: { ref: headBranch } } = pull;
+        const mergeResult = await octokit.request('POST /repos/{owner}/{repo}/merges', {
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            base: tmpBranchName,
+            head: headBranch
+        });
+        console.log(mergeResult);
+    }
     console.log(JSON.stringify(pulls));
     console.log(sha);
 };
