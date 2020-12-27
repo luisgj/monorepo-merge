@@ -93,10 +93,10 @@ const mergeBranches = async function (pulls) {
     });
     //create temp branch from main branch.
     const tmpBranchName = `integration-${github.context.repo.repo}-${Date.now()}`;
-    await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
+    const createRef = await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
-        ref: `refs/heads/integration-${tmpBranchName}`,
+        ref: `refs/heads/${tmpBranchName}`,
         sha: sha
     });
     //merge group branches to tmp branch
