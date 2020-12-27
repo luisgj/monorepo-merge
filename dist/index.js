@@ -95,7 +95,7 @@ const mergeBranches = async function (pulls) {
     await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
-        ref: `integration-${github.context.repo.repo}-${Date.now()}`,
+        ref: `refs/heads/integration-${github.context.repo.repo}-${Date.now()}`,
         sha: sha
     });
     console.log(JSON.stringify(pulls));
