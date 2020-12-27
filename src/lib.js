@@ -67,8 +67,8 @@ export const groupLabeledPullRequests = async function () {
  */
 export const mergeBranches = async function (pulls) {
     const mainBranchName = getInput('main-branch');
-    const octokit = getOctokit(token);
     const token = getInput('repo-token');
+    const octokit = getOctokit(token);
     //get latest main branch sha.
     const { data } = await octokit.request('GET /repos/{owner}/{repo}/branches/{branch}', {
         owner: context.repo.owner,
