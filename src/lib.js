@@ -70,11 +70,18 @@ export const mergeBranches = async function (pulls) {
     const token = getInput('repo-token');
     const octokit = getOctokit(token);
     //get latest main branch sha.
-    const data = await octokit.request('GET /repos/{owner}/{repo}/branches/{branch}', {
+    const { data: { commit: { sha } } } = await octokit.request('GET /repos/{owner}/{repo}/branches/{branch}', {
         owner: context.repo.owner,
         repo: context.repo.repo,
         branch: mainBranchName
     });
+    //create temp branch from main branch.
+    await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        ref: `integration-${context.repo.repo}-${Date.now()}`,
+        sha: sha
+    });
     console.log(JSON.stringify(pulls));
-    console.log(JSON.stringify(data));
+    console.log(sha);
 };
