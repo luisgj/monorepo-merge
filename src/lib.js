@@ -11,7 +11,7 @@ export const groupLabeledPullRequests = async function (octokit) {
     try {
         //get input from Github Job declaration
         var pulls = [];
-        var comment = '##Trying to merge Pull Requests:\n';
+        var comment = '## Trying to merge Pull Requests:\n';
         const label = getInput('target-label');
         const excludeCurrent = getInput('exclude-current');
         //Create search query
