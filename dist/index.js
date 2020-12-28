@@ -20,48 +20,156 @@ var core = __webpack_require__(127);
 /**
  * groupLabeledPullRequests
  * @description Fetches all PRs from repo with target label and merge each one to a temp branch.
+ * @arg octokit Github Octokit Rest client
+ * @return pulls[] Array of grouped pull request objects
  */
-const groupLabeledPullRequests = async function () {
+const groupLabeledPullRequests = async function (octokit) {
+    //get current pull request number
+    const splitUrl = github.context.payload.comment.issue_url.split('/');
+    const currentIssueNumber = parseInt(splitUrl[splitUrl.length - 1], 10)
     try {
         //get input from Github Job declaration
-        const token = (0,core.getInput)('repo-token');
+        var pulls = [];
+        var comment = '## Trying to merge Pull Requests:\n';
         const label = (0,core.getInput)('target-label');
         const excludeCurrent = (0,core.getInput)('exclude-current');
-        //Create Octokit client and search for Pull Requests
+        //Create search query
         const q = `is:pull-request label:${label} repo:${github.context.repo.owner}/${github.context.repo.repo} state:open`;
-        const octokit = (0,github.getOctokit)(token);
+        //Call github API through the octokit client
         const { data } = await octokit.search.issuesAndPullRequests({
             q,
             sort: 'created',
             order: 'desc',
         });
-        // We have detected to exclude the current branch, so we will build the default.
-        if (excludeCurrent === "true" && data.total_count <= 0) {
-            return "default"
+        //Exclude the current branch, so we will build the default.
+        if(excludeCurrent === "true" && data.total_count <= 0) {
+            return "default";
         }
-        console.log(JSON.stringify(data.items));
-        return 'this are the branches'
+        //Fetch the current pull request
+        const { data: currentPull } = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+            pull_number: currentIssueNumber
+        });
+        // Nothing to iterate. Just add the current pull data to merge
+        if(excludeCurrent !== 'true' && data.total_count <= 0) {
+            comment += `- ${currentPull.html_url}\n`;
+            createComment(octokit, currentIssueNumber, comment);
+            return [currentPull];
+        }
+        //iterate over selected PRs
+        if(data.total_count > 0) {
+            if(excludeCurrent !== 'true') {
+                console.log('Pushing current PR to array');
+                comment += `- ${currentPull.html_url}\n`;
+                pulls.push(currentPull)
+            }
+            for (const item of data.items) {
+                if (item.number !== currentIssueNumber) {
+                    const accPull = await octokit.request(`GET /repos/{owner}/{repo}/pulls/{pull_number}`, {
+                        owner: github.context.repo.owner,
+                        repo: github.context.repo.repo,
+                        pull_number: item.number
+                    });
+                    console.log(`Pushing External PR #${item.number} to array`);
+                    comment += `- ${item.html_url}\n`;
+                    pulls.push(accPull.data);
+                }
+            }
+        }
+        await createComment(octokit, currentIssueNumber, comment);
+        await mergeBranches(octokit, pulls);
     } catch (e) {
+        if (e.message === "Merge conflict") {
+            console.log("Merge conflict error.")
+            //Add label
+        }
+        const message = `:ghost: Merge failed with error:\n\`\`\`shell\n${e.message}\n\`\`\``;
+        createComment(octokit, currentIssueNumber, message);
         (0,core.setFailed)(e.message);
     }
 };
+
 /**
  * mergeBranches
- * @description Merge the branches into a temp branch.
+ * @description Merge the the head branches in a PR array into a temp branch.
+ * @arg pulls Array of pullr request objects.
+ * @arg octokit Github Octokit Rest client.
  */
-const mergeBranches = async function (branches) {
-    console.log(branches);
+const mergeBranches = async function (octokit, pulls) {
+    //get latest main branch sha.
+    const mainBranchName = (0,core.getInput)('main-branch');
+    const integrationBranchName = (0,core.getInput)('integration-branch');
+    const { data: { commit: { sha } } } = await octokit.request('GET /repos/{owner}/{repo}/branches/{branch}', {
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        branch: mainBranchName
+    });
+    //create temp branch from main branch.
+    const tmpBranchName = `integration-${github.context.repo.repo}-${Date.now()}`;
+    await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        ref: `refs/heads/${tmpBranchName}`,
+        sha: sha
+    });
+    //merge group branches to tmp branch
+    for (const pull of pulls) {
+        const { head: { ref: headBranch }, number } = pull;
+        console.log(`Merging Pull Request #${number} into ${tmpBranchName}`);
+        await octokit.request('POST /repos/{owner}/{repo}/merges', {
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+            base: tmpBranchName,
+            head: headBranch,
+        });
+        console.log(`Merged Pull Request #${number} into ${tmpBranchName} successfully.`);
+    }
+    //merge into integration branch
+    console.log(`Merging branch #${tmpBranchName} into ${integrationBranchName}.`);
+    await octokit.request('POST /repos/{owner}/{repo}/merges', {
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        base: integrationBranchName,
+        head: tmpBranchName,
+    });
+    console.log(`Merged branch #${tmpBranchName} into ${integrationBranchName} successfully.`);
 };
+
+/**
+ * createComment
+ * @description Create a comment in the current PR
+ * @arg octokit Github Octokit client
+ * @arg pull PR number
+ * @arg message The comment message to show in PR
+ */
+const createComment = async function(octokit, pull, message) {
+    try {
+        await octokit.issues.createComment({
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+            issue_number: pull,
+            body: message,
+          });
+    } catch(e) {
+        console.log('Error creating comment')
+        console.log(e.message);
+    }
+};
+
 // CONCATENATED MODULE: ./index.js
+
+
 
 
 /**
  * main
  * @description Fetches all PRs from repo with target label and merge each one to a temp branch.
  */
-function main() {
-    const branches = groupLabeledPullRequests();
-    mergeBranches(branches);
+async function main() {
+    const token = (0,core.getInput)('repo-token');
+    const octokit = (0,github.getOctokit)(token);
+    await groupLabeledPullRequests(octokit);
 }
 main();
 

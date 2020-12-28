@@ -1,11 +1,14 @@
-import { groupLabeledPullRequests, mergeBranches } from './src/lib'
+import { groupLabeledPullRequests } from './src/lib'
+import { getInput } from '@actions/core';
+import { getOctokit } from '@actions/github';
 
 /**
  * main
  * @description Fetches all PRs from repo with target label and merge each one to a temp branch.
  */
-function main() {
-    const branches = groupLabeledPullRequests();
-    mergeBranches(branches);
+async function main() {
+    const token = getInput('repo-token');
+    const octokit = getOctokit(token);
+    await groupLabeledPullRequests(octokit);
 }
 main();
