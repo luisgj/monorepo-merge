@@ -4,17 +4,18 @@ import { getInput, setFailed } from '@actions/core';
 /**
  * groupLabeledPullRequests
  * @description Fetches all PRs from repo with target label and merge each one to a temp branch.
- * @arg octokit Github Octokit Rest client
- * @return pulls[] Array of grouped pull request objects
+ * @arg {object} octokit Github Octokit Rest client
  */
 export const groupLabeledPullRequests = async function (octokit) {
     //get current pull request number
     const splitUrl = context.payload.comment.issue_url.split('/');
     const currentIssueNumber = parseInt(splitUrl[splitUrl.length - 1], 10)
+    //create tempBranchName
+    const tempBranch = `temp-ci-${context.repo.repo}-${Date.now()}`;
     try {
         //get input from Github Job declaration
         var pulls = [];
-        var comment = '## Trying to merge Pull Requests:\n';
+        var comment = '### Going to merge pull requests:\n';
         const label = getInput('target-label');
         const excludeCurrent = getInput('exclude-current');
         //Create search query
@@ -46,7 +47,7 @@ export const groupLabeledPullRequests = async function (octokit) {
             if(excludeCurrent !== 'true') {
                 console.log('Pushing current PR to array');
                 comment += `- ${currentPull.html_url}\n`;
-                pulls.push(currentPull)
+                pulls.push(currentPull);
             }
             for (const item of data.items) {
                 if (item.number !== currentIssueNumber) {
@@ -62,14 +63,15 @@ export const groupLabeledPullRequests = async function (octokit) {
             }
         }
         await createComment(octokit, currentIssueNumber, comment);
-        await mergeBranches(octokit, pulls);
+        await mergeBranches(octokit, pulls, tempBranch);
     } catch (e) {
         if (e.message === "Merge conflict") {
             console.log("Merge conflict error.")
             //Add label
         }
         const message = `:ghost: Merge failed with error:\n\`\`\`shell\n${e.message}\n\`\`\``;
-        createComment(octokit, currentIssueNumber, message);
+        await createComment(octokit, currentIssueNumber, message);
+        await cleanup(octokit, tempBranch);
         setFailed(e.message);
     }
 };
@@ -77,10 +79,11 @@ export const groupLabeledPullRequests = async function (octokit) {
 /**
  * mergeBranches
  * @description Merge the the head branches in a PR array into a temp branch.
- * @arg pulls Array of pullr request objects.
- * @arg octokit Github Octokit Rest client.
+ * @arg {array} pulls Array of pullr request objects.
+ * @arg {object} octokit Github Octokit Rest client.
+ * @arg {string} tempBranch Temporal branch to merge the grouped heads.
  */
-const mergeBranches = async function (octokit, pulls) {
+const mergeBranches = async function (octokit, pulls, tempBranch) {
     //get latest main branch sha.
     const mainBranchName = getInput('main-branch');
     const integrationBranchName = getInput('integration-branch');
@@ -90,42 +93,42 @@ const mergeBranches = async function (octokit, pulls) {
         branch: mainBranchName
     });
     //create temp branch from main branch.
-    const tmpBranchName = `integration-${context.repo.repo}-${Date.now()}`;
     await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
         owner: context.repo.owner,
         repo: context.repo.repo,
-        ref: `refs/heads/${tmpBranchName}`,
+        ref: `refs/heads/${tempBranch}`,
         sha: sha
     });
     //merge group branches to tmp branch
     for (const pull of pulls) {
         const { head: { ref: headBranch }, number } = pull;
-        console.log(`Merging Pull Request #${number} into ${tmpBranchName}`);
+        console.log(`Merging Pull Request #${number} into ${tempBranch}`);
         await octokit.request('POST /repos/{owner}/{repo}/merges', {
             owner: context.repo.owner,
             repo: context.repo.repo,
-            base: tmpBranchName,
+            base: tempBranch,
             head: headBranch,
         });
-        console.log(`Merged Pull Request #${number} into ${tmpBranchName} successfully.`);
+        console.log(`Merged Pull Request #${number} into ${tempBranch} successfully.`);
     }
     //merge into integration branch
-    console.log(`Merging branch #${tmpBranchName} into ${integrationBranchName}.`);
+    console.log(`Merging branch #${tempBranch} into ${integrationBranchName}.`);
     await octokit.request('POST /repos/{owner}/{repo}/merges', {
         owner: context.repo.owner,
         repo: context.repo.repo,
         base: integrationBranchName,
-        head: tmpBranchName,
+        head: tempBranch,
     });
-    console.log(`Merged branch #${tmpBranchName} into ${integrationBranchName} successfully.`);
+    console.log(`Merged branch #${tempBranch} into ${integrationBranchName} successfully.`);
+    await cleanup(octokit, tempBranch);
 };
 
 /**
  * createComment
- * @description Create a comment in the current PR
- * @arg octokit Github Octokit client
- * @arg pull PR number
- * @arg message The comment message to show in PR
+ * @description Create a comment in the current PR 
+ * @param {octokit} octokit 
+ * @param {string} pull 
+ * @param {string} message 
  */
 const createComment = async function(octokit, pull, message) {
     try {
@@ -140,3 +143,23 @@ const createComment = async function(octokit, pull, message) {
         console.log(e.message);
     }
 };
+
+/**
+ * cleanup
+ * @description 
+ * @param {*} octokit 
+ * @param {*} tempBranch 
+ */
+const cleanup = async function(octokit, tempBranch) {
+    try {
+        console.log(`Deleting temp branch: ${pull}`);
+        await octokit.request('DELETE /repos/{owner}/{repo}/git/refs/{ref}', {
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: `refs/head/${tempBranch}`
+        });
+    } catch(e) {
+        console.log('Error deleting temp branch.')
+        console.log(e.message);
+    }
+}
