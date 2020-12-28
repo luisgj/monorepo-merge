@@ -8,6 +8,9 @@ import { getInput, setFailed } from '@actions/core';
  * @return pulls[] Array of grouped pull request objects
  */
 export const groupLabeledPullRequests = async function (octokit) {
+    //get current pull request number
+    const splitUrl = context.payload.comment.issue_url.split('/');
+    const currentIssueNumber = parseInt(splitUrl[splitUrl.length - 1], 10)
     try {
         //get input from Github Job declaration
         var pulls = [];
@@ -27,8 +30,6 @@ export const groupLabeledPullRequests = async function (octokit) {
             return "default";
         }
         //Fetch the current pull request
-        const splitUrl = context.payload.comment.issue_url.split('/');
-        const currentIssueNumber = parseInt(splitUrl[splitUrl.length - 1], 10)
         const { data: currentPull } = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
             owner: context.repo.owner,
             repo: context.repo.repo,
@@ -68,7 +69,7 @@ export const groupLabeledPullRequests = async function (octokit) {
             //Add label
         }
         const message = `:ghost: Merge failed with error:\n\`\`\`shell\n${e.message}\n\`\`\``;
-        createComment(octokit, pull_number, message);
+        createComment(octokit, currentIssueNumber, message);
         setFailed(e.message);
     }
 };
