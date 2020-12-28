@@ -24,6 +24,9 @@ var core = __webpack_require__(127);
  * @return pulls[] Array of grouped pull request objects
  */
 const groupLabeledPullRequests = async function (octokit) {
+    //get current pull request number
+    const splitUrl = github.context.payload.comment.issue_url.split('/');
+    const currentIssueNumber = parseInt(splitUrl[splitUrl.length - 1], 10)
     try {
         //get input from Github Job declaration
         var pulls = [];
@@ -43,8 +46,6 @@ const groupLabeledPullRequests = async function (octokit) {
             return "default";
         }
         //Fetch the current pull request
-        const splitUrl = github.context.payload.comment.issue_url.split('/');
-        const currentIssueNumber = parseInt(splitUrl[splitUrl.length - 1], 10)
         const { data: currentPull } = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
@@ -84,7 +85,7 @@ const groupLabeledPullRequests = async function (octokit) {
             //Add label
         }
         const message = `:ghost: Merge failed with error:\n\`\`\`shell\n${e.message}\n\`\`\``;
-        createComment(octokit, pull_number, message);
+        createComment(octokit, currentIssueNumber, message);
         (0,core.setFailed)(e.message);
     }
 };
