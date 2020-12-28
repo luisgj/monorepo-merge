@@ -71,9 +71,10 @@ export const groupLabeledPullRequests = async function (octokit) {
  * mergeBranches
  * @description Merge the the head branches in a PR array into a temp branch.
  * @arg pulls Array of pullr request objects.
- * @arg octokit Github Octokit Rest client
+ * @arg octokit Github Octokit Rest client.
+ * @arg pull_number Current pull request number.
  */
-export const mergeBranches = async function (octokit, pulls) {
+export const mergeBranches = async function (octokit, pulls, pull_number) {
     try {
         //get latest main branch sha.
         const mainBranchName = getInput('main-branch');
@@ -103,10 +104,11 @@ export const mergeBranches = async function (octokit, pulls) {
         console.log(JSON.stringify(pulls));
         console.log(sha);
     } catch (e) {
-        if (e.message === "Merge Conflict") {
-            console.log("Merge conflict error")
+        if (e.message === "Merge conflict") {
+            console.log("Merge conflict error:")
             JSON.stringify(e);
-            //ADD LABEL AND COMMENT
+            const message = `:ghost: Merge failed with error:\n\`\`\`shell\n${e.message}\n\`\`\``;
+            createComment(octokit, pull_number, message);
         }
         setFailed(e.message)
     }
@@ -124,8 +126,8 @@ const createComment = async function(octokit, pull, message) {
         await octokit.issues.createComment({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            pull,
-            message,
+            issue_number: pull,
+            body: message,
           });
     } catch(e) {
         console.log('Error creating comment')
