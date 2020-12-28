@@ -1,4 +1,4 @@
-import { groupLabeledPullRequests, mergeBranches } from './src/lib'
+import { groupLabeledPullRequests } from './src/lib'
 import { getInput } from '@actions/core';
 import { getOctokit } from '@actions/github';
 
@@ -9,7 +9,6 @@ import { getOctokit } from '@actions/github';
 async function main() {
     const token = getInput('repo-token');
     const octokit = getOctokit(token);
-    const branches = await groupLabeledPullRequests(octokit);
-    mergeBranches(octokit, branches);
+    await groupLabeledPullRequests(octokit);
 }
 main();
