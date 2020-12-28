@@ -18,13 +18,19 @@ jobs:
     steps:
       - name: fail if no tag is found 
         run: |
-          IS_STAGE_READY="${{ contains(github.event.pull_request.labels.*.name, 'stage-ready') }}"
-          exit 0
+          IS_STAGE_READY=${{ contains(github.event.pull_request.labels.*.name, 'stage-ready') }}
+          if [ "$IS_STAGE_READY" = true ] ; then
+            exit 0
+          fi
+          exit 1
   signOff:
     runs-on: ubuntu-latest
     name: Check for Sign-off
     steps:
       - name: fail check
         run: |
-          IS_SIGNED_OFF="${{ contains(github.event.pull_request.labels.*.name, 'signed-off') }}"
-          exit 0
+          IS_SIGNED_OFF=${{ contains(github.event.pull_request.labels.*.name, 'signed-off') }}
+          if [ "$IS_SIGNED_OFF" = true ] ; then
+            exit 0
+          fi
+          exit 1
