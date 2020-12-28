@@ -121,8 +121,7 @@ const mergeBranches = async function (octokit, pulls, pull_number) {
         console.log(sha);
     } catch (e) {
         if (e.message === "Merge conflict") {
-            console.log("Merge conflict error:")
-            JSON.stringify(e);
+            console.log("Merge conflict error.")
             const message = `:ghost: Merge failed with error:\n\`\`\`shell\n${e.message}\n\`\`\``;
             createComment(octokit, pull_number, message);
         }
