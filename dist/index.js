@@ -64,6 +64,7 @@ const groupLabeledPullRequests = async function (octokit) {
                 currentIssueNumber,
                 `### :rocket: All pull requests were merged successfully from ${tempBranch} into ${(0,core.getInput)('integration-branch')}.\nMerged:\n---${prLinks}`,
             );
+            await cleanup(octokit, tempBranch);
             return;
         }
         //iterate over selected PRs
