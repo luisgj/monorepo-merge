@@ -41,7 +41,7 @@ export const groupLabeledPullRequests = async function (octokit) {
         if(excludeCurrent !== 'true' && data.total_count <= 0) {
             prLinks += `- ${currentPull.html_url}\n`;
             await createComment(octokit, currentIssueNumber, comment);
-            await mergeBranches(octokit, pulls, tempBranch);
+            await mergeBranches(octokit, [currentPull], tempBranch);
             await createComment(
                 octokit,
                 currentIssueNumber,
