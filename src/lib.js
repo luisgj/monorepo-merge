@@ -40,6 +40,7 @@ export const groupLabeledPullRequests = async function (octokit) {
         // Nothing to iterate. Just add the current pull data to merge
         if(excludeCurrent !== 'true' && data.total_count <= 0) {
             prLinks += `- ${currentPull.html_url}\n`;
+            comment += prLinks;
             await createComment(octokit, currentIssueNumber, comment);
             await mergeBranches(octokit, [currentPull], tempBranch);
             await createComment(
