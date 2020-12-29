@@ -14,21 +14,17 @@ A Javascript Github Action that fetches open pull requests with a specific label
 
 ## Outputs
 
-### `branches`
+### `tempBranch`
 
-Grouped list of open branches with the same tag
+Temp branch name with the grouped heads merged in.
 
 ## Example usage
 
 ```yaml
-uses: luisgj/group-pull-requests@v1.0
+uses: bitsoex/group-and-merge-action@v1.0
 with:
-  detect-label: 'stage-ready'
+  target-label: 'stage-ready'
   repo-token: '${{ secrets.GITHUB_TOKEN }}'
+  integration-branch: 'staging'
+  main-branch: 'main'
 ```
----
-This is a conflicting file in the pull request.
-
----
-This is the dummy change
----
