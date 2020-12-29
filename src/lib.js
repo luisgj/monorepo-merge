@@ -173,7 +173,7 @@ const cleanup = async function(octokit, tempBranch) {
         await octokit.request('DELETE /repos/{owner}/{repo}/git/refs/{ref}', {
             owner: context.repo.owner,
             repo: context.repo.repo,
-            ref: `refs/head/${tempBranch}`
+            ref: `refs/heads/${tempBranch}`
         });
     } catch(e) {
         console.log('Error deleting temp branch.')
