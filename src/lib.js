@@ -16,6 +16,7 @@ export const groupLabeledPullRequests = async function (octokit) {
         //get input from Github Job declaration
         var pulls = [];
         var comment = '### Going to merge pull requests:\n';
+        var prLinks = '';
         const label = getInput('target-label');
         const excludeCurrent = getInput('exclude-current');
         //Create search query
@@ -38,15 +39,21 @@ export const groupLabeledPullRequests = async function (octokit) {
         });
         // Nothing to iterate. Just add the current pull data to merge
         if(excludeCurrent !== 'true' && data.total_count <= 0) {
-            comment += `- ${currentPull.html_url}\n`;
-            createComment(octokit, currentIssueNumber, comment);
-            return [currentPull];
+            prLinks += `- ${currentPull.html_url}\n`;
+            await createComment(octokit, currentIssueNumber, comment);
+            await mergeBranches(octokit, pulls, tempBranch);
+            await createComment(
+                octokit,
+                currentIssueNumber,
+                `### :rocket: All pull requests were merged successfully from ${tempBranch} into ${getInput('integration-branch')}.\nMerged:\n---${prLinks}`,
+            );
+            return;
         }
         //iterate over selected PRs
         if(data.total_count > 0) {
             if(excludeCurrent !== 'true') {
                 console.log('Pushing current PR to array');
-                comment += `- ${currentPull.html_url}\n`;
+                prLinks += `- ${currentPull.html_url}\n`;
                 pulls.push(currentPull);
             }
             for (const item of data.items) {
@@ -57,18 +64,29 @@ export const groupLabeledPullRequests = async function (octokit) {
                         pull_number: item.number
                     });
                     console.log(`Pushing External PR #${item.number} to array`);
-                    comment += `- ${item.html_url}\n`;
+                    prLinks += `- ${item.html_url}\n`;
                     pulls.push(accPull.data);
                 }
             }
         }
+        //comment and merge branches
+        comment += prLinks;
         await createComment(octokit, currentIssueNumber, comment);
         await mergeBranches(octokit, pulls, tempBranch);
+        //comment success in PR if merge is successful.
+        await createComment(
+            octokit,
+            currentIssueNumber,
+            `### :rocket: All pull requests were merged successfully from ${tempBranch} into ${getInput('integration-branch')}.\nMerged:\n---${prLinks}`,
+        );
+        //cleanup function (delete temp branch)
+        await cleanup(octokit, tempBranch);
     } catch (e) {
         if (e.message === "Merge conflict") {
             console.log("Merge conflict error.")
             //Add label
         }
+        //comment failure in pr, cleanup and set action as failed.
         const message = `:ghost: Merge failed with error:\n\`\`\`shell\n${e.message}\n\`\`\``;
         await createComment(octokit, currentIssueNumber, message);
         await cleanup(octokit, tempBranch);
@@ -120,7 +138,6 @@ const mergeBranches = async function (octokit, pulls, tempBranch) {
         head: tempBranch,
     });
     console.log(`Merged branch #${tempBranch} into ${integrationBranchName} successfully.`);
-    await cleanup(octokit, tempBranch);
 };
 
 /**
@@ -148,11 +165,11 @@ const createComment = async function(octokit, pull, message) {
  * cleanup
  * @description 
  * @param {*} octokit 
- * @param {*} tempBranch 
+ * @param {string} tempBranch 
  */
 const cleanup = async function(octokit, tempBranch) {
     try {
-        console.log(`Deleting temp branch: ${pull}`);
+        console.log(`Deleting temp branch: ${tempBranch}`);
         await octokit.request('DELETE /repos/{owner}/{repo}/git/refs/{ref}', {
             owner: context.repo.owner,
             repo: context.repo.repo,
@@ -162,4 +179,4 @@ const cleanup = async function(octokit, tempBranch) {
         console.log('Error deleting temp branch.')
         console.log(e.message);
     }
-}
+};
