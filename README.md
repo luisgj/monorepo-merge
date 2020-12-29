@@ -26,9 +26,9 @@ with:
   detect-label: 'stage-ready'
   repo-token: '${{ secrets.GITHUB_TOKEN }}'
 ```
----
-This is a conflicting file in the pull request.
+## Options
 
----
-This is the dummy change
----
+Configure these options for the action:
+
+- foo
+- bar
