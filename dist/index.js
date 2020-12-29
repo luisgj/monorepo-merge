@@ -56,8 +56,9 @@ const groupLabeledPullRequests = async function (octokit) {
         // Nothing to iterate. Just add the current pull data to merge
         if(excludeCurrent !== 'true' && data.total_count <= 0) {
             prLinks += `- ${currentPull.html_url}\n`;
+            comment += prLinks;
             await createComment(octokit, currentIssueNumber, comment);
-            await mergeBranches(octokit, pulls, tempBranch);
+            await mergeBranches(octokit, [currentPull], tempBranch);
             await createComment(
                 octokit,
                 currentIssueNumber,
@@ -189,7 +190,7 @@ const cleanup = async function(octokit, tempBranch) {
         await octokit.request('DELETE /repos/{owner}/{repo}/git/refs/{ref}', {
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
-            ref: `refs/head/${tempBranch}`
+            ref: `refs/heads/${tempBranch}`
         });
     } catch(e) {
         console.log('Error deleting temp branch.')
