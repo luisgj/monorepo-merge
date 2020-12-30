@@ -46,7 +46,7 @@ export const groupLabeledPullRequests = async function (octokit) {
             await createComment(
                 octokit,
                 currentIssueNumber,
-                `### :rocket: All pull requests were merged successfully from ${tempBranch} into ${getInput('integration-branch')}.\nMerged:\n---${prLinks}`,
+                `:rocket: All pull requests were merged successfully from \`${tempBranch}\` into \`${getInput('integration-branch')}\`.\n*Summary:*\n\n---\n\n${prLinks}`,
             );
             return;
         }
