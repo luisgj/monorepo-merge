@@ -12,6 +12,14 @@ A Javascript Github Action that fetches open pull requests with a specific label
 
 **Required** The token secret stored in `secrets.GITHUB_TOKEN`
 
+### `main-branch`
+
+**Required** Main branch of the repo
+
+### `integration-branch`
+
+**Required** A protected branch that serves as integration to a testing environment
+
 ## Outputs
 
 ### `tempBranch`
@@ -28,4 +36,3 @@ with:
   integration-branch: 'staging'
   main-branch: 'main'
 ```
---- dummy change
