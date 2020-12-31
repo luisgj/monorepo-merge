@@ -14,7 +14,7 @@ A Javascript Github Action that fetches open pull requests with a specific label
 
 ## Outputs
 
-### `tempBranch`
+### `temp-branch`
 
 Temp branch name with the grouped heads merged in.
 

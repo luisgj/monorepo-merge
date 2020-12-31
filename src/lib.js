@@ -50,6 +50,7 @@ export const groupLabeledPullRequests = async function (octokit) {
                 `:rocket: All pull requests were merged successfully from \`${tempBranch}\` into \`${getInput('integration-branch')}\`.\n\n**Summary:**\n---\n${prLinks}:`,
             );
             await cleanup(octokit, tempBranch);
+            setOutput('temp-branch', tempBranch);
             return;
         }
         //iterate over selected PRs
@@ -84,6 +85,7 @@ export const groupLabeledPullRequests = async function (octokit) {
         );
         //cleanup function (delete temp branch)
         await cleanup(octokit, tempBranch);
+        setOutput('temp-branch', tempBranch);
     } catch (e) {
         if (e.message === "Merge conflict") {
             console.log("Merge conflict error.")
@@ -115,11 +117,12 @@ const mergeBranches = async function (octokit, pulls, tempBranch) {
     });
     console.log(`Creating branch ${tempBranch} from main with sha: ${sha}.`);
     //create temp branch from main branch.
-    await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
+    await octokit.request('PATCH /repos/{owner}/{repo}/git/refs', {
         owner: context.repo.owner,
         repo: context.repo.repo,
-        ref: `refs/heads/${tempBranch}`,
-        sha: sha
+        ref: `heads/${integrationBranchName}`,
+        sha: sha,
+        force: true,
     });
     //merge group branches to tmp branch
     for (const pull of pulls) {
