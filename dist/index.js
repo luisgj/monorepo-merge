@@ -66,6 +66,7 @@ const groupLabeledPullRequests = async function (octokit) {
                 `:rocket: All pull requests were merged successfully from \`${tempBranch}\` into \`${(0,core.getInput)('integration-branch')}\`.\n\n**Summary:**\n---\n${prLinks}:`,
             );
             await cleanup(octokit, tempBranch);
+            (0,core.setOutput)(tempBranch);
             return;
         }
         //iterate over selected PRs
@@ -100,6 +101,7 @@ const groupLabeledPullRequests = async function (octokit) {
         );
         //cleanup function (delete temp branch)
         await cleanup(octokit, tempBranch);
+        (0,core.setOutput)(tempBranch);
     } catch (e) {
         if (e.message === "Merge conflict") {
             console.log("Merge conflict error.")

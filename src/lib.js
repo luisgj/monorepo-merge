@@ -1,5 +1,5 @@
 import { context } from '@actions/github';
-import { getInput, setFailed } from '@actions/core';
+import { getInput, setFailed, setOutput } from '@actions/core';
 
 /**
  * groupLabeledPullRequests
@@ -50,6 +50,7 @@ export const groupLabeledPullRequests = async function (octokit) {
                 `:rocket: All pull requests were merged successfully from \`${tempBranch}\` into \`${getInput('integration-branch')}\`.\n\n**Summary:**\n---\n${prLinks}:`,
             );
             await cleanup(octokit, tempBranch);
+            setOutput(tempBranch);
             return;
         }
         //iterate over selected PRs
@@ -84,6 +85,7 @@ export const groupLabeledPullRequests = async function (octokit) {
         );
         //cleanup function (delete temp branch)
         await cleanup(octokit, tempBranch);
+        setOutput(tempBranch);
     } catch (e) {
         if (e.message === "Merge conflict") {
             console.log("Merge conflict error.")
