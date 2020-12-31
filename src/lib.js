@@ -143,7 +143,7 @@ const mergeBranches = async function (octokit, pulls, tempBranch) {
     await octokit.request('PATCH /repos/{owner}/{repo}/git/refs/{ref}', {
         owner: context.repo.owner,
         repo: context.repo.repo,
-        ref: integrationBranchName,
+        ref: `refs/heads/${integrationBranchName}`,
         sha: tempSha,
         force: true,
     });
