@@ -43,10 +43,11 @@ export const groupLabeledPullRequests = async function (octokit) {
             comment += prLinks;
             await createComment(octokit, currentIssueNumber, comment);
             await mergeBranches(octokit, [currentPull], tempBranch);
+            //comment success in PR if merge is successful.
             await createComment(
                 octokit,
                 currentIssueNumber,
-                `:rocket: All pull requests were merged successfully from \`${tempBranch}\` into \`${getInput('integration-branch')}\`.\n*Summary:*\n\n---\n\n${prLinks}`,
+                `:rocket: All pull requests were merged successfully from \`${tempBranch}\` into \`${getInput('integration-branch')}\`.\n\n**Summary:**\n---\n${prLinks}:`,
             );
             await cleanup(octokit, tempBranch);
             return;
@@ -79,7 +80,7 @@ export const groupLabeledPullRequests = async function (octokit) {
         await createComment(
             octokit,
             currentIssueNumber,
-            `### :rocket: All pull requests were merged successfully from ${tempBranch} into ${getInput('integration-branch')}.\nMerged:\n---${prLinks}`,
+            `:rocket: All pull requests were merged successfully from \`${tempBranch}\` into \`${getInput('integration-branch')}\`.\n\n**Summary:**\n---\n${prLinks}`,
         );
         //cleanup function (delete temp branch)
         await cleanup(octokit, tempBranch);
@@ -112,6 +113,7 @@ const mergeBranches = async function (octokit, pulls, tempBranch) {
         repo: context.repo.repo,
         branch: mainBranchName
     });
+    console.log(`Creating branch ${tempBranch} from main with sha: ${sha}.`);
     //create temp branch from main branch.
     await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
         owner: context.repo.owner,
@@ -131,15 +133,29 @@ const mergeBranches = async function (octokit, pulls, tempBranch) {
         });
         console.log(`Merged Pull Request #${number} into ${tempBranch} successfully.`);
     }
-    //merge into integration branch
-    console.log(`Merging branch #${tempBranch} into ${integrationBranchName}.`);
-    await octokit.request('POST /repos/{owner}/{repo}/merges', {
+    // get latest temp branch commit sha
+    const { data: { commit: { sha: tempSha } } } = await octokit.request('GET /repos/{owner}/{repo}/branches/{branch}', {
         owner: context.repo.owner,
         repo: context.repo.repo,
-        base: integrationBranchName,
-        head: tempBranch,
+        branch: tempBranch
     });
-    console.log(`Merged branch #${tempBranch} into ${integrationBranchName} successfully.`);
+    console.log(`Updating branch ${integrationBranchName} from ${tempBranch} with commit sha: ${tempSha}.`);
+    await octokit.request('PATCH /repos/{owner}/{repo}/git/refs/{ref}', {
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        ref: integrationBranchName,
+        sha: tempSha,
+        force: true,
+    });
+    // // //merge into integration branch
+    // // console.log(`Merging branch #${tempBranch} into ${integrationBranchName}.`);
+    // // await octokit.request('POST /repos/{owner}/{repo}/merges', {
+    // //     owner: context.repo.owner,
+    // //     repo: context.repo.repo,
+    // //     base: integrationBranchName,
+    // //     head: tempBranch,
+    // // });
+    // console.log(`Merged branch #${tempBranch} into ${integrationBranchName} successfully.`);
 };
 
 /**
@@ -175,7 +191,7 @@ const cleanup = async function(octokit, tempBranch) {
         await octokit.request('DELETE /repos/{owner}/{repo}/git/refs/{ref}', {
             owner: context.repo.owner,
             repo: context.repo.repo,
-            ref: `refs/heads/${tempBranch}`
+            ref: tempBranch
         });
     } catch(e) {
         console.log('Error deleting temp branch.')
