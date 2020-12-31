@@ -140,29 +140,29 @@ const mergeBranches = async function (octokit, pulls, tempBranch) {
     //merge group branches to tmp branch
     for (const pull of pulls) {
         const { head: { ref: headBranch }, number } = pull;
-        console.log(`Merging Pull Request #${number} into ${tempBranch}`);
+        console.log(`Merging Pull Request #${number} into ${integrationBranchName}`);
         await octokit.request('POST /repos/{owner}/{repo}/merges', {
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
-            base: tempBranch,
+            base: integrationBranchName,
             head: headBranch,
         });
         console.log(`Merged Pull Request #${number} into ${tempBranch} successfully.`);
     }
-    // get latest temp branch commit sha
-    const { data: { commit: { sha: tempSha } } } = await octokit.request('GET /repos/{owner}/{repo}/branches/{branch}', {
-        owner: github.context.repo.owner,
-        repo: github.context.repo.repo,
-        branch: tempBranch
-    });
-    console.log(`Updating branch ${integrationBranchName} from ${tempBranch} with commit sha: ${tempSha}.`);
-    await octokit.request('PATCH /repos/{owner}/{repo}/git/refs/{ref}', {
-        owner: github.context.repo.owner,
-        repo: github.context.repo.repo,
-        ref: `heads/${integrationBranchName}`,
-        sha: tempSha,
-        force: true,
-    });
+    // // get latest temp branch commit sha
+    // const { data: { commit: { sha: tempSha } } } = await octokit.request('GET /repos/{owner}/{repo}/branches/{branch}', {
+    //     owner: context.repo.owner,
+    //     repo: context.repo.repo,
+    //     branch: tempBranch
+    // });
+    // console.log(`Updating branch ${integrationBranchName} from ${tempBranch} with commit sha: ${tempSha}.`);
+    // await octokit.request('PATCH /repos/{owner}/{repo}/git/refs/{ref}', {
+    //     owner: context.repo.owner,
+    //     repo: context.repo.repo,
+    //     ref: `heads/${integrationBranchName}`,
+    //     sha: tempSha,
+    //     force: true,
+    // });
     // // //merge into integration branch
     // // console.log(`Merging branch #${tempBranch} into ${integrationBranchName}.`);
     // // await octokit.request('POST /repos/{owner}/{repo}/merges', {
