@@ -1,5 +1,5 @@
 import { context } from '@actions/github';
-import { getInput, setFailed } from '@actions/core';
+import { getInput, setFailed, setOutput } from '@actions/core';
 
 /**
  * groupLabeledPullRequests
