@@ -21,8 +21,8 @@ inputs:
     default: 'staging'
     required: true
 outputs:
-  branches:
-    description: 'Grouped target branches (comma separated)'
+  temp-brancb:
+    description: 'Temp branch with all grouped PRs.'
 runs:
   using: 'node12'
   main: 'dist/index.js'
