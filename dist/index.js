@@ -268,7 +268,7 @@ const mergeBranches = async function (octokit, pulls, tempBranch) {
  * @description Fetches all PRs from repo with target label and merge each one to a temp branch.
  */
 async function main() {
-    (0,core.debug)(JSON.stringify(github.context));
+    (0,core.info)(JSON.stringify(github.context));
     const triggerComment = (0,core.getInput)('trigger-comment');
     const token = (0,core.getInput)('repo-token');
     const octokit = (0,github.getOctokit)(token);
