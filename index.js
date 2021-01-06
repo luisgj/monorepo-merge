@@ -7,7 +7,8 @@ import { getOctokit, context } from '@actions/github';
  * @description Fetches all PRs from repo with target label and merge each one to a temp branch.
  */
 async function main() {
-    info(JSON.stringify(context));
+    console.log(context.eventName);
+    console.log(JSON.stringify(context.payload));
     const triggerComment = getInput('trigger-comment');
     const token = getInput('repo-token');
     const octokit = getOctokit(token);
