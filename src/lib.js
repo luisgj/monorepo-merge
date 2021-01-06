@@ -42,12 +42,45 @@ export const cleanup = async function(octokit, tempBranch) {
 };
 
 /**
+ * removeLabel
+ * @description 
+ * @param {*} octokit 
+ * @param {*} label 
+ * @param {*} pullNumber
+ */
+export const removeLabel = async function(octokit, label, pullNumber) {
+    try {
+        console.log(`Deleting label: ${label}`);
+        await octokit.request('DELETE /repos/{owner}/{repo}/issues/{issue_number}/labels/{name}', {
+            owner: 'octocat',
+            repo: 'hello-world',
+            issue_number: 42,
+            name: 'name'
+        });
+    } catch(e) {
+        console.log('Error deleting label.');
+        console.log(e.message);
+    }
+};
+
+/**
  * createLabel
  * @description 
  * @param {*} octokit 
  * @param {*} label 
+ * @param {*} pullNumber
  */
-export const createLabel = async function(octokit, label) {
-
+export const createLabel = async function(octokit, label, pullNumber) {
+    try {
+        console.log(`Deleting label: ${label}`);
+        await octokit.request('DELETE /repos/{owner}/{repo}/issues/{issue_number}/labels/{name}', {
+            owner: 'octocat',
+            repo: 'hello-world',
+            issue_number: 42,
+            name: 'name'
+        });
+    } catch(e) {
+        console.log('Error deleting label.');
+        console.log(e.message);
+    }
 };
-

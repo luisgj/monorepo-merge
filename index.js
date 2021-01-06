@@ -19,13 +19,13 @@ async function main() {
             break;
         case "/approve":
             info('Init sign Off process.')
-            await signOffPullRequest(octokit);
             break;
         case "/rollback":
             info('Init rollback process.')
             await groupLabeledPullRequests(octokit, true);
             break;
         default:
+            info(triggerComment);
             setFailed('The command is not supported.'); 
             break;
     }

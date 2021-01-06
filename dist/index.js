@@ -39,7 +39,7 @@ const createComment = async function(octokit, pull, message) {
 
 /**
  * cleanup
- * @description 
+ * @description Cleanup after the step runs.
  * @param {*} octokit 
  * @param {string} tempBranch 
  */
@@ -53,6 +53,50 @@ const cleanup = async function(octokit, tempBranch) {
         });
     } catch(e) {
         console.log('Error deleting temp branch.')
+        console.log(e.message);
+    }
+};
+
+/**
+ * removeLabel
+ * @description 
+ * @param {*} octokit 
+ * @param {*} label 
+ * @param {*} pullNumber
+ */
+const removeLabel = async function(octokit, label, pullNumber) {
+    try {
+        console.log(`Deleting label: ${label}`);
+        await octokit.request('DELETE /repos/{owner}/{repo}/issues/{issue_number}/labels/{name}', {
+            owner: 'octocat',
+            repo: 'hello-world',
+            issue_number: 42,
+            name: 'name'
+        });
+    } catch(e) {
+        console.log('Error deleting label.');
+        console.log(e.message);
+    }
+};
+
+/**
+ * createLabel
+ * @description 
+ * @param {*} octokit 
+ * @param {*} label 
+ * @param {*} pullNumber
+ */
+const createLabel = async function(octokit, label, pullNumber) {
+    try {
+        console.log(`Deleting label: ${label}`);
+        await octokit.request('DELETE /repos/{owner}/{repo}/issues/{issue_number}/labels/{name}', {
+            owner: 'octocat',
+            repo: 'hello-world',
+            issue_number: 42,
+            name: 'name'
+        });
+    } catch(e) {
+        console.log('Error deleting label.');
         console.log(e.message);
     }
 };
@@ -168,7 +212,7 @@ const groupLabeledPullRequests = async function (octokit) {
  * @arg {string} tempBranch Temporal branch to merge the grouped heads.
  */
 const mergeBranches = async function (octokit, pulls, tempBranch) {
-    //get client with permissions
+    //get client with permissions to merge
     const token = (0,core.getInput)('private-token');
     const octokitMerge = (0,github.getOctokit)(token);
     //get latest main branch sha.
@@ -236,13 +280,13 @@ async function main() {
             break;
         case "/approve":
             (0,core.info)('Init sign Off process.')
-            await signOffPullRequest(octokit);
             break;
         case "/rollback":
             (0,core.info)('Init rollback process.')
             await groupLabeledPullRequests(octokit, true);
             break;
         default:
+            (0,core.info)(triggerComment);
             (0,core.setFailed)('The command is not supported.'); 
             break;
     }

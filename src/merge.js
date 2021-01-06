@@ -108,7 +108,7 @@ export const groupLabeledPullRequests = async function (octokit) {
  * @arg {string} tempBranch Temporal branch to merge the grouped heads.
  */
 const mergeBranches = async function (octokit, pulls, tempBranch) {
-    //get client with permissions
+    //get client with permissions to merge
     const token = getInput('private-token');
     const octokitMerge = getOctokit(token);
     //get latest main branch sha.
