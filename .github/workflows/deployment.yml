@@ -34,4 +34,4 @@ jobs:
           repo-token: '${{ secrets.GITHUB_TOKEN }}'
           target-label: stage-ready
           main-branch: 'main'
-          trigger-comment: steps.check-comment.outputs.comment-body
+          trigger-comment: steps.check-comment.outputs.comment_body
