@@ -264,13 +264,28 @@ const mergeBranches = async function (octokit, pulls, tempBranch) {
 
 
 /**
- * main
+ * init
  * @description Fetches all PRs from repo with target label and merge each one to a temp branch.
  */
-async function main() {
-    console.log(github.context.eventName);
-    console.log(JSON.stringify(github.context.payload));
-    const triggerComment = (0,core.getInput)('trigger-comment');
+async function init() {
+    //check event type to dispatch to proper action
+    const eventName = github.context.eventName;
+    if(eventName == 'issue_comment') {
+        await commandDisptacher();
+    } else if(eventName == 'pull_request') {
+        await reValidation();
+    } else {
+        (0,core.setFailed)('This event is unsupported.');
+    }
+}
+
+/**
+ * commandDispatcher
+ * @description Gets a triggered comment body command and dispatches an action.
+ */
+const commandDisptacher = async function() {
+    const triggerComment = github.context.payload.comment.body;
+    console.log(triggerComment);
     const token = (0,core.getInput)('repo-token');
     const octokit = (0,github.getOctokit)(token);
     //TODO remove ugly switch statement replace with cnfigurable command list
@@ -291,8 +306,17 @@ async function main() {
             (0,core.setFailed)('The command is not supported.'); 
             break;
     }
-}
-main();
+};
+
+/**
+ * commandDispatcher
+ * @description Gets a triggered comment body command and dispatches an action.
+ */
+const reValidation = async function() {
+
+};
+
+init();
 
 
 /***/ }),
