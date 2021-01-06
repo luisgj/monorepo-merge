@@ -2,7 +2,7 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 914:
+/***/ 47:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -14,6 +14,51 @@ var github = __webpack_require__(134);
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
 var core = __webpack_require__(127);
 // CONCATENATED MODULE: ./src/lib.js
+
+
+/**
+ * createComment
+ * @description Create a comment in the current PR 
+ * @param {octokit} octokit 
+ * @param {string} pull 
+ * @param {string} message 
+ */
+const createComment = async function(octokit, pull, message) {
+    try {
+        await octokit.issues.createComment({
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+            issue_number: pull,
+            body: message,
+          });
+    } catch(e) {
+        console.log('Error creating comment')
+        console.log(e.message);
+    }
+};
+
+/**
+ * cleanup
+ * @description 
+ * @param {*} octokit 
+ * @param {string} tempBranch 
+ */
+const cleanup = async function(octokit, tempBranch) {
+    try {
+        console.log(`Deleting temp branch: ${tempBranch}`);
+        await octokit.request('DELETE /repos/{owner}/{repo}/git/refs/{ref}', {
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+            ref: `heads/${tempBranch}`,
+        });
+    } catch(e) {
+        console.log('Error deleting temp branch.')
+        console.log(e.message);
+    }
+};
+
+// CONCATENATED MODULE: ./src/merge.js
+
 
 
 
@@ -123,6 +168,9 @@ const groupLabeledPullRequests = async function (octokit) {
  * @arg {string} tempBranch Temporal branch to merge the grouped heads.
  */
 const mergeBranches = async function (octokit, pulls, tempBranch) {
+    //get client with permissions
+    const token = (0,core.getInput)('private-token');
+    const octokitMerge = (0,github.getOctokit)(token);
     //get latest main branch sha.
     const mainBranchName = (0,core.getInput)('main-branch');
     const integrationBranchName = (0,core.getInput)('integration-branch');
@@ -137,23 +185,16 @@ const mergeBranches = async function (octokit, pulls, tempBranch) {
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
         ref: `refs/heads/${tempBranch}`,
-        sha: sha
+        sha: sha,
     });
     //merge group branches to tmp branch
     for (const pull of pulls) {
-        const { head: { ref: headBranch }, number } = pull;
-        // // get latest head branch commit sha
-        const { data: { commit: { sha: headSha } } } = await octokit.request('GET /repos/{owner}/{repo}/branches/{branch}', {
+        console.log(`Merging Pull Request #${pull.number} into ${tempBranch}`);
+        await octokit.request('POST /repos/{owner}/{repo}/merges', {
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
-            branch: headBranch,
-        });
-        console.log(`Merging Pull Request #${number} into ${tempBranch}`);
-        await octokit.request('PATCH /repos/{owner}/{repo}/git/refs/{ref}', {
-            owner: github.context.repo.owner,
-            repo: github.context.repo.repo,
-            ref: `heads/${tempBranch}`,
-            sha: headSha,
+            base: tempBranch,
+            head: pull.head.ref,
         });
         console.log(`Merged Pull Request #${number} into ${tempBranch} successfully.`);
     }
@@ -164,63 +205,13 @@ const mergeBranches = async function (octokit, pulls, tempBranch) {
         branch: tempBranch
     });
     console.log(`Updating branch ${integrationBranchName} from ${tempBranch} with commit sha: ${tempSha}.`);
-    await octokit.request('PATCH /repos/{owner}/{repo}/git/refs/{ref}', {
+    await octokitMerge.request('PATCH /repos/{owner}/{repo}/git/refs/{ref}', {
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
         ref: `heads/${integrationBranchName}`,
         sha: tempSha,
         force: true,
     });
-    // //merge into integration branch
-    // console.log(`Merging branch #${tempBranch} into ${integrationBranchName}.`);
-    // await octokit.request('POST /repos/{owner}/{repo}/merges', {
-    //     owner: context.repo.owner,
-    //     repo: context.repo.repo,
-    //     base: integrationBranchName,
-    //     head: tempBranch,
-    // });
-    // console.log(`Merged branch #${tempBranch} into ${integrationBranchName} successfully.`);
-};
-
-/**
- * createComment
- * @description Create a comment in the current PR 
- * @param {octokit} octokit 
- * @param {string} pull 
- * @param {string} message 
- */
-const createComment = async function(octokit, pull, message) {
-    try {
-        await octokit.issues.createComment({
-            owner: github.context.repo.owner,
-            repo: github.context.repo.repo,
-            issue_number: pull,
-            body: message,
-          });
-    } catch(e) {
-        console.log('Error creating comment')
-        console.log(e.message);
-    }
-};
-
-/**
- * cleanup
- * @description 
- * @param {*} octokit 
- * @param {string} tempBranch 
- */
-const cleanup = async function(octokit, tempBranch) {
-    try {
-        console.log(`Deleting temp branch: ${tempBranch}`);
-        await octokit.request('DELETE /repos/{owner}/{repo}/git/refs/{ref}', {
-            owner: github.context.repo.owner,
-            repo: github.context.repo.repo,
-            ref: `heads/${tempBranch}`,
-        });
-    } catch(e) {
-        console.log('Error deleting temp branch.')
-        console.log(e.message);
-    }
 };
 
 // CONCATENATED MODULE: ./index.js
@@ -233,9 +224,28 @@ const cleanup = async function(octokit, tempBranch) {
  * @description Fetches all PRs from repo with target label and merge each one to a temp branch.
  */
 async function main() {
+    (0,core.debug)(JSON.stringify(github.context));
+    const triggerComment = (0,core.getInput)('trigger-comment');
     const token = (0,core.getInput)('repo-token');
     const octokit = (0,github.getOctokit)(token);
-    await groupLabeledPullRequests(octokit);
+    //TODO remove ugly switch statement replace with cnfigurable command list
+    switch(triggerComment) {
+        case "/stage-deploy":
+            (0,core.info)('Init group and merge deployment process.')
+            await groupLabeledPullRequests(octokit);
+            break;
+        case "/approve":
+            (0,core.info)('Init sign Off process.')
+            await signOffPullRequest(octokit);
+            break;
+        case "/rollback":
+            (0,core.info)('Init rollback process.')
+            await groupLabeledPullRequests(octokit, true);
+            break;
+        default:
+            (0,core.setFailed)('The command is not supported.'); 
+            break;
+    }
 }
 main();
 
@@ -6170,6 +6180,6 @@ module.exports = require("zlib");;
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(914);
+/******/ 	return __webpack_require__(47);
 /******/ })()
 ;

@@ -5,9 +5,6 @@ inputs:
     description: 'Target label to fetch for PRs'
     required: true
     default: 'stage-ready'
-  exclude-current:
-    description: 'Whether or not to exclude the current PR target branch'
-    default: 'false'
   repo-token:
     description: 'Github token secret'
     required: true
@@ -20,8 +17,14 @@ inputs:
     description: 'The branch to merge the grouped branches'
     default: 'staging'
     required: true
+  private-token:
+    description: 'The token used to push to integration branch.'
+    required: true
+  trigger-comment:
+    description: 'The comment that triggered the workflow.'
+    required: true
 outputs:
-  temp-brancb:
+  temp-branch:
     description: 'Temp branch with all grouped PRs.'
 runs:
   using: 'node12'

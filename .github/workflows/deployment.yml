@@ -1,7 +1,13 @@
-name: Bitso Pull Request Deployer
+name: Bitso Pull Request Integrator
 on:
   issue_comment:
-    types: [created]
+    types:
+      - created
+  pull_request:
+    types:
+      - labeled
+      - unlabeled
+      - synchronize
 jobs:
   pr_commented:
     # This job only runs for pull request comments
@@ -28,3 +34,4 @@ jobs:
           repo-token: '${{ secrets.GITHUB_TOKEN }}'
           target-label: stage-ready
           main-branch: 'main'
+          trigger-comment: steps.check-comment.outputs.comment-body
