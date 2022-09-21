@@ -1,4 +1,8 @@
 name: 'Group Pull Requests'
+author: 'luisgj'
+branding:
+  icon: 'git-pull-request'
+  color: 'orange'
 description: 'Groups open Pull requests with a specific label'
 inputs:
   target-label:
