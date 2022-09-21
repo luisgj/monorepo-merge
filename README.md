@@ -29,7 +29,7 @@ Temp branch name with the grouped heads merged in.
 ## Example usage
 
 ```yaml
-uses: bitsoex/group-and-merge-action@v1.0
+uses: luisgj/monorepo-merge@v0.0.1
 with:
   target-label: 'stage-ready'
   repo-token: '${{ secrets.GITHUB_TOKEN }}'
