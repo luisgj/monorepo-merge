@@ -1,6 +1,8 @@
-# Group Pull Requests Github Action
+# Monorepo merge Github Action
 
-A Javascript Github Action that fetches open pull requests with a specific label and returns the grouped source branches.
+A Javascript Github Action with the intention of being used in monorepos to integrate many PRs into a single branch.
+
+The action fetches open pull requests with a specific label and returns the grouped source branches.
 
 ## Inputs
 
