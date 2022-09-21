@@ -1,9 +1,9 @@
-name: 'Group Pull Requests'
+name: 'Monorepo merge'
 author: 'luisgj'
 branding:
   icon: 'git-pull-request'
   color: 'orange'
-description: 'Groups open Pull requests with a specific label'
+description: 'Finds, groups and merges PRs with specific label into a selected branch'
 inputs:
   target-label:
     description: 'Target label to fetch for PRs'
